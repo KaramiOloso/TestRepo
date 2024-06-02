@@ -1,5 +1,5 @@
 name: GITHUB Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions
+run-name: ${{ github.actor }} is testing out Github Actions
 
 on:
   push:
@@ -10,17 +10,27 @@ jobs:
   create-deployment-artifacts:
     name: Create Deployment Artifacts
     runs-on: ubuntu-latest
-    outputs:
+    outputs: 
       deployment-matrix: ${{ steps.export-deployment-matrix.outputs.deployment-matrix}}
     steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      
       - name: Check out repository code
         uses: actions/checkout@v3
-
+      
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      
       - name: Build .NET project
         run: dotnet build
 
       - name: Run tests
         run: dotnet test
+
+      - name: List overall files
+        run: ls
 
       - name: Create deployment artifact
         env:
@@ -61,7 +71,7 @@ jobs:
       - name: Upload artifact to server
         uses: nogsantos/scp-deploy@master
         with:
-          src: ${{ github.sha}}.tar.gz
+          src: ${{ github.sha }}.tar.gz
           host: ${{ matrix.server.ip}}
           remote: ${{ matrix.server.path}}
           user: ${{ matrix.server.username}}
@@ -71,7 +81,7 @@ jobs:
       - name: Deploy application on server
         run: |
           ssh -i private_key -p ${{ matrix.server.port }} ${{ matrix.server.username }}@${{ matrix.server.ip }} << 'EOF'
-          tar -xzf ${{ matrix.server.path }}/{{ github.sha }}.tar.gz -C ${{ matrix.server.path }}
+          tar -xzf ${{ matrix.server.path }}/${{ github.sha }}.tar.gz -C ${{ matrix.server.path }}
           cd ${{ matrix.server.path }}
           dotnet publish -c Release -o out
           # Add additional deployment commands here
